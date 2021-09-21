@@ -112,14 +112,14 @@ export default function initGamesController(db) {
     // deal out a new shuffled deck for this game.
     const cardDeck = shuffleCards(makeDeck());
     const playerHand = [cardDeck.pop(), cardDeck.pop()];
-
+    console.log('in create game');
     const newGame = {
       gameState: {
         cardDeck,
         playerHand,
       },
     };
-
+    console.log('newGame :>> ', newGame);
     try {
       // run the DB INSERT query
       const game = await db.Game.create(newGame);

@@ -3,7 +3,20 @@ let currentGame = null;
 
 // create game btn
 const createGameBtn = document.createElement('button');
+const loginBtn = document.createElement('button');
+const registrationBtn = document.createElement('button');
 
+const findMatch = () => {
+  axios.get('/findmatch')
+    .then((response) => {
+      console.log('response playermatch :>> ', response);
+    })
+    .catch((error) => {
+      console.log('error in finding match :>> ', error);
+    });
+
+  // loggedin status
+};
 // DOM manipulation function that displays the player's current hand.
 const runGame = function ({ playerHand }) {
   // manipulate DOM
@@ -67,7 +80,99 @@ const createGame = function () {
     });
 };
 
+const checkLoggedIn = () => {
+  axios.get('/isloggedin')
+    .then((response) => {
+      console.log('response from login :>> ', response);
+      if (response.data.isLoggedIn === true)
+      {
+        document.body.appendChild(createGameBtn);
+      }
+      else {
+        // render other buttons
+        document.body.appendChild(loginBtn);
+        document.body.appendChild(registrationBtn);
+      }
+    })
+    .catch((error) => console.log('error from logging in', error));
+};
 // manipulate DOM, set up create game button
+const regisLoginForm = function (buttonName) {
+  const formContainer = document.querySelector('#form-container');
+
+  formContainer.innerHTML = `<input placeholder="email" id="email">
+  <input placeholder="password" id="password">
+  <button id=${buttonName}>${buttonName}</button>`;
+};
+
+const submitRegisForm = async () => {
+  const email = document.querySelector('#email').value;
+  const password = document.querySelector('#password').value;
+  const errorContainer = document.querySelector('#error-container');
+
+  await axios.post('/register', { email, password })
+    .then((response) => {
+      if (response.data.error)
+      {
+        throw response.data.error;
+      }
+      const formContainer = document.querySelector('#form-container');
+      formContainer.innerHTML = '';
+      errorContainer.innerHTML = '';
+    })
+    .catch((error) => {
+      errorContainer.innerHTML = '<p style="color:red">Email is not valid</p>';
+      console.log(error);
+    });
+  checkLoggedIn();
+};
+const submitLoginForm = async () => {
+  const email = document.querySelector('#email').value;
+  const password = document.querySelector('#password').value;
+  const errorContainer = document.querySelector('#error-container');
+
+  await axios.post('/login', { email, password })
+    .then((response) => {
+      if (response.data.error)
+      {
+        throw response.data.error;
+      }
+      const formContainer = document.querySelector('#form-container');
+      formContainer.innerHTML = '';
+      errorContainer.innerHTML = '';
+    })
+    .catch((error) => {
+      errorContainer.innerHTML = '<p style="color:red">Wrong email or password</p>';
+      console.log(error);
+    });
+  checkLoggedIn();
+};
+
+const regisForm = () => {
+  const formType = 'Register';
+  regisLoginForm(formType);
+  const submitButton = document.querySelector(`button[id=${formType}]`);
+  submitButton.addEventListener('click', submitRegisForm);
+  document.body.removeChild(loginBtn);
+  document.body.removeChild(registrationBtn);
+};
+
+const loginForm = () => {
+  const formType = 'Login';
+  regisLoginForm(formType);
+  const submitButton = document.querySelector(`button[id=${formType}]`);
+  submitButton.addEventListener('click', submitLoginForm);
+  document.body.removeChild(loginBtn);
+  document.body.removeChild(registrationBtn);
+};
+
+registrationBtn.addEventListener('click', regisForm);
+registrationBtn.innerText = 'Register';
+
+loginBtn.addEventListener('click', loginForm);
+loginBtn.innerText = 'Login';
+
 createGameBtn.addEventListener('click', createGame);
-createGameBtn.innerText = 'Create Game';
-document.body.appendChild(createGameBtn);
+createGameBtn.innerText = 'Start Game';
+
+checkLoggedIn();
