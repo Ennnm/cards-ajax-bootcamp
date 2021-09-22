@@ -106,20 +106,21 @@ export default function initGamesController(db) {
   const index = (request, response) => {
     response.render('games/index');
   };
-
   // create a new game. Insert a new row in the DB.
   const create = async (request, response) => {
     // deal out a new shuffled deck for this game.
     const cardDeck = shuffleCards(makeDeck());
     const playerHand = [cardDeck.pop(), cardDeck.pop()];
+    const opponentHand = [cardDeck.pop(), cardDeck.pop()];
     console.log('in create game');
     const newGame = {
       gameState: {
         cardDeck,
         playerHand,
+        opponentHand,
       },
     };
-    console.log('newGame :>> ', newGame);
+    // console.log('newGame :>> ', newGame);
     try {
       // run the DB INSERT query
       const game = await db.Game.create(newGame);
@@ -129,6 +130,7 @@ export default function initGamesController(db) {
       response.send({
         id: game.id,
         playerHand: game.gameState.playerHand,
+        opponentHand: game.gameState.opponentHand,
       });
     } catch (error) {
       response.status(500).send(error);
