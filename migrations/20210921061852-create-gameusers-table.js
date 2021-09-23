@@ -7,7 +7,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      gameId: {
+      game_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
@@ -15,7 +15,7 @@ module.exports = {
           key: 'id',
         },
       },
-      userId: {
+      user_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
@@ -33,7 +33,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable('gameUsers');
   },
 };

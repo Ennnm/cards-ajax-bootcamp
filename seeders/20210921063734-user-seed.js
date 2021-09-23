@@ -1,4 +1,4 @@
-const util = require('../util.js');
+// const util = require('../util.mjs');
 // import util from '../util.mjs';
 
 module.exports = {
@@ -7,7 +7,8 @@ module.exports = {
     const userObjs = [];
     users.forEach((user) => userObjs.push({
       email: `${user}@gmail.com`,
-      password: util.getHash(user),
+      // password: util.getHash(user),
+      password: user,
       created_at: new Date(),
       updated_at: new Date(),
     }));

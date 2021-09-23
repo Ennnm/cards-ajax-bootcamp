@@ -23,7 +23,9 @@ export default function bindRoutes(app) {
   // create a new game
   app.post('/games', gamesController.create);
   // update a game with new cards
+  app.put('/games/:id/winner', gamesController.setWinner);
   app.put('/games/:id/deal', gamesController.deal);
+  app.get('/games/:id', gamesController.show);
 
   app.get('/isloggedin', checkLoggedIn);
   app.post('/register', userController.register);

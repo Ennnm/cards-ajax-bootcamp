@@ -1,10 +1,13 @@
 // global value that holds info about the current hand.
 let currentGame = null;
 
+document.body.classList.add('container');
 // create game btn
 const createGameBtn = document.createElement('button');
 const loginBtn = document.createElement('button');
 const registrationBtn = document.createElement('button');
+const dealBtn = document.createElement('button');
+const refreshBtn = document.createElement('button');
 
 const findMatch = async () => {
   const res = await axios.get('/findmatch').catch((e) => console.log('error in finding match', e));
@@ -33,16 +36,13 @@ const currPlayerGameStatus = (playerHand, opponentHand) => {
 const runGame = function ({ playerHand, opponentHand }) {
   // manipulate DOM
   const gameContainer = document.querySelector('#game-container');
+  gameContainer.innerHTML = '';
   const currPlayerContainer = document.createElement('div');
   const oppPlayerContainer = document.createElement('div');
 
-  currPlayerContainer.style.display = 'inline-block';
-  oppPlayerContainer.style.display = 'inline-block';
-
-  oppPlayerContainer.style.margin = '20px';
-  oppPlayerContainer.style.margin = '20px';
-
-  const gameStatus = document.createElement('p');
+  gameContainer.classList.add('d-flex', 'justify-content-around');
+  currPlayerContainer.classList.add('d-inline');
+  oppPlayerContainer.classList.add('d-inline');
 
   currPlayerContainer.innerText = `
     Your Hand:
@@ -60,7 +60,9 @@ const runGame = function ({ playerHand, opponentHand }) {
     ${opponentHand[0].suit}
   `;
 
+  const gameStatus = document.createElement('div');
   gameStatus.innerText = `You ${currPlayerGameStatus(playerHand, opponentHand)}`;
+  // gameStatus.classList.add('d-inline');
 
   gameContainer.appendChild(currPlayerContainer);
   gameContainer.appendChild(oppPlayerContainer);
@@ -69,6 +71,42 @@ const runGame = function ({ playerHand, opponentHand }) {
 
 // make a request to the server
 // to change the deck. set 2 new cards into the player hand.
+const countWinsTiesLosses = ({ gameOutcomes }) => {
+  let winCount = 0;
+  let tieCount = 0;
+  let lossCount = 0;
+
+  for (let i = 0; i < gameOutcomes.length; i++) {
+    const outcome = gameOutcomes[i];
+    if (outcome === 'win') winCount += 1;
+    else if (outcome === 'lose') lossCount += 1;
+    else tieCount += 1;
+  }
+  return { winCount, tieCount, lossCount };
+};
+const concludeGame = (gameOutcome, gameId, playerId) => {
+  const gameContainer = document.querySelector('#game-container');
+  const { winCount, lossCount, tieCount } = gameOutcome;
+  let isWin = false;
+  if (winCount > lossCount) {
+    gameContainer.innerHTML += `<p>You have won with win/tie/loss: ${winCount}/${lossCount}/${tieCount}</p>`;
+    isWin = true;
+  }
+  else {
+    gameContainer.innerHTML += `<p>You have loss with win/tie/loss: ${winCount}/${lossCount}/${tieCount}</p>`;
+  }
+  createGameBtn.innerText = 'Start another game';
+  document.body.appendChild(createGameBtn);
+  document.body.removeChild(dealBtn);
+  document.body.removeChild(refreshBtn);
+  axios.put(`/games/${gameId}/winner`, { playerId, isWin })
+    .then((response) => {
+      console.log('response setting winner :>> ', response);
+    })
+    .catch((error) => {
+      console.log('error in setting winner :>> ', error);
+    });
+};
 const dealCards = function () {
   axios.put(`/games/${currentGame.id}/deal`)
     .then((response) => {
@@ -77,6 +115,11 @@ const dealCards = function () {
       console.log('currentGame :>> ', currentGame);
       // display it to the user
       runGame(currentGame);
+
+      const gameOutcome = countWinsTiesLosses(currentGame);
+      if (gameOutcome.winCount === 3 || gameOutcome.lossCount === 3) {
+        return concludeGame(gameOutcome, currentGame.id, currentGame.userId);
+      }
     })
     .catch((error) => {
       // handle error
@@ -84,16 +127,29 @@ const dealCards = function () {
     });
 };
 
+const refreshCards = async () => {
+  axios.get(`/games/${currentGame.id}`)
+    .then((response) => {
+      currentGame = response.data;
+      runGame(currentGame);
+
+      const gameContainer = document.querySelector('#game-container');
+      const { winCount, tieCount, lossCount } = countWinsTiesLosses(currentGame);
+      gameContainer.innerHTML += `<p>Wins: ${winCount} Ties: ${tieCount} Losses: ${lossCount}</p>`;
+    })
+    .catch((error) => {
+      console.log('error in refeshing cards :>> ', error);
+    });
+};
 const createGame = async () => {
   // Make a request to create a new game
-  const matchingPartner = await findMatch();
-  console.log('matchingPartner :>> ', matchingPartner);
+  const opponent = await findMatch();
+  console.log('matchingPartner :>> ', opponent);
+  document.body.removeChild(createGameBtn);
+  const gameContainer = document.querySelector('#game-container');
+  gameContainer.innerHTML = '';
 
-  // const dealBtn = '<button id="deal>Deal</button>';
-  // dealBtn.addEventListener('click', dealCards);
-  // document.body.appendChild(dealBtn);
-
-  axios.post('/games')
+  axios.post('/games', { opponent })
     .then((response) => {
       // set the global value to the new game.
       currentGame = response.data;
@@ -101,16 +157,18 @@ const createGame = async () => {
       console.log('currentGame :>> ', currentGame);
       // display it out to the user
       runGame(currentGame);
-      const currPlayerStatus = currPlayerGameStatus(playerHand, opponentHand);
       // for this current game, create a button that will allow the user to
       // manipulate the deck that is on the DB.
       // Create a button for it.
-      const dealBtn = document.createElement('button');
+
       dealBtn.addEventListener('click', dealCards);
+      dealBtn.innerText = 'Deal';
       document.body.appendChild(dealBtn);
 
+      refreshBtn.addEventListener('click', refreshCards);
+      refreshBtn.innerText = 'Refresh';
+      document.body.appendChild(refreshBtn);
       // display the button
-      dealBtn.innerText = 'Deal';
     })
     .catch((error) => {
       // handle error

@@ -73,7 +73,7 @@ export default function initUserController(db) {
   };
 
   const findMatch = async (req, res) => {
-    const currentPlayer = req.userId;
+    const currentPlayer = req.cookies.userId;
     const currentTime = new Date();
     const loggedInUsers = await db.LoginToken.findAll({
       where: {
@@ -90,7 +90,16 @@ export default function initUserController(db) {
     let matchUser;
     let isOfflineMatch = true;
     if (loggedInUsers.length === 0) {
-      const allUsers = await db.User.findAll();
+      const allUsers = await db.User.findAll({
+        where: {
+          id: {
+            [Op.ne]: currentPlayer,
+          },
+        },
+      });
+      console.log('currentPlayer :>> ', currentPlayer);
+
+      console.log('allUsers :>> ', allUsers);
       console.log('matched with offline player');
       matchUser = allUsers[Math.floor(allUsers.length * Math.random())];
     }
@@ -101,7 +110,7 @@ export default function initUserController(db) {
       isOfflineMatch = false;
     }
     console.log('matchUser :>> ', matchUser);
-    res.send({ matchUserId: matchUser.id, isOfflineMatch });
+    res.send({ id: matchUser.id, isOfflineMatch });
   };
   return {
     register,

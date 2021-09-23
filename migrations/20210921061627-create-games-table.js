@@ -14,6 +14,13 @@ module.exports = {
         // all game state (e.g. cardDeck, playerHand) in the gameState JSON column.
         type: Sequelize.JSON,
       },
+      winner_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

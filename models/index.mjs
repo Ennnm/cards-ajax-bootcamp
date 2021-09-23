@@ -19,7 +19,14 @@ db.User = userModel(sequelize, Sequelize.DataTypes);
 db.LoginToken = loginsModel(sequelize, Sequelize.DataTypes);
 // TODO CREATE LOGIN FOR USER
 
+// db.Game.belongsToMany(db.User, { through: 'game_users' });
 db.Game.belongsToMany(db.User, { through: 'game_users' });
+
+db.Game.belongsTo(db.User, {
+  as: 'winner',
+  foreignKey: 'winner_id',
+});
+// db.User.belongsToMany(db.Game, { through: 'game_users' });
 db.User.belongsToMany(db.Game, { through: 'game_users' });
 
 db.User.hasOne(db.LoginToken);
