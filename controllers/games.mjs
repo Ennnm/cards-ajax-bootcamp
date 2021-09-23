@@ -227,9 +227,17 @@ export default function initGamesController(db) {
       winner = await db.User.findByPk(playerId);
     }
     else {
+      // not working
       const gameUsers = await game.getUsers();
+      // const gameUsers = await game.getUsers({
+      //   where: {
+      //     id: {
+      //       [Op.ne]: playerId,
+      //     },
+      //   },
+      // });
       // eslint-disable-next-line prefer-destructuring
-      winner = gameUsers.filter((user) => user.id !== playerId)[0];
+      winner = gameUsers.filter((user) => user.dataValues.id !== playerId)[0];
     }
     // game.addWinner(winner);
     console.log('winner :>> ', winner);
