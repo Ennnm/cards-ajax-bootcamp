@@ -97,10 +97,6 @@ export default function initUserController(db) {
           },
         },
       });
-      console.log('currentPlayer :>> ', currentPlayer);
-
-      console.log('allUsers :>> ', allUsers);
-      console.log('matched with offline player');
       matchUser = allUsers[Math.floor(allUsers.length * Math.random())];
     }
     else
